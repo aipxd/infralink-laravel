@@ -17,55 +17,104 @@ Infralink memudahkan mahasiswa, organisasi mahasiswa (ormawa), dan unit kampus d
 
 ---
 
-## 👥 Akun Bawaan (Default Seeder)
+## 🧰 Persiapan (Prasyarat)
 
-Semua akun menggunakan kata sandi: `password123`
+Pastikan perangkat berikut sudah terpasang **sebelum** menjalankan proyek ini.
 
-| Peran | Email | Keterangan |
-| --- | --- | --- |
-| **ADMIN** | `admin@infralink.ac.id` | Akses penuh: dashboard, kelola fasilitas, kategori, blokir jadwal, kelola pengguna & peran |
-| **APPROVER** | `approver@infralink.ac.id` | Peninjau peminjaman: antrean pengajuan, setujui/tolak dengan catatan |
-| **PEMOHON** | `mahasiswa@infralink.ac.id` | Pengguna: mengajukan peminjaman, memantau riwayat di "Peminjaman Saya", membatalkan |
-| **PEMOHON 2** | `hima@infralink.ac.id` | Akun ormawa HIMASISFO |
+| Kebutuhan            | Versi               | Keterangan                                                                                  | Cek dengan      |
+| ---------------------|-------------------- | --------------------------------------------------------------------------------------------|-----------------|
+| **PHP**              | 8.2 atau lebih baru | Wajib                                                                                       | `php -v`        |
+| **Composer**         | 2.x                 | Wajib, untuk memasang library PHP                                                           | `composer -V`   | 
+| **Git**              | Terbaru             | Untuk meng-clone repository (opsional jika mengunduh ZIP)                                   | `git --version` |
+| **MySQL**            | 8.x / MariaDB 10.4+ | Opsional, hanya jika tidak memakai SQLite (misalnya lewat XAMPP)                            | -               |
+| **Koneksi internet** | -                   | Wajib saat dijalankan, karena Tailwind CSS, FullCalendar, dan Font Awesome dimuat lewat CDN | -               |
+
+> **Node.js / npm tidak diperlukan** untuk menjalankan aplikasi ini.
+
+### Ekstensi PHP yang harus aktif
+
+`mbstring`, `openssl`, `fileinfo`, `curl`, `xml`, `ctype`, `tokenizer`, `zip`, serta `pdo_sqlite` dan `sqlite3` (untuk SQLite) atau `pdo_mysql` (untuk MySQL).
+
+Jika memakai **XAMPP (Windows)**, buka `C:\xampp\php\php.ini`, cari baris berikut, lalu hapus tanda `;` di depannya jika ada:
+
+```ini
+extension=fileinfo
+extension=zip
+extension=pdo_sqlite
+extension=sqlite3
+extension=pdo_mysql
+```
+
+### Panduan pasang untuk pemula (Windows)
+
+1. Pasang **XAMPP** (pilih versi dengan PHP 8.2+): https://www.apachefriends.org
+2. Tambahkan `C:\xampp\php` ke **PATH** Windows (cari *Edit the system environment variables* → *Environment Variables* → *Path* → *New*).
+3. Pasang **Composer** (`Composer-Setup.exe`): https://getcomposer.org/download/
+4. Pasang **Git**: https://git-scm.com/download/win
+5. **Tutup lalu buka kembali** PowerShell/terminal agar perintah baru dikenali, lalu cek `php -v`, `composer -V`, dan `git --version`.
 
 ---
 
-## 🚀 Cara Menjalankan Aplikasi
+## 🚀 Cara Menjalankan di Laptop Sendiri
 
-### 1. Jalankan Server Pengembangan Laravel
-
-Buka terminal di folder project ini (`d:\Coding\Infralink PHP`), lalu jalankan:
+### Langkah 1. Ambil proyek
 
 ```bash
-php artisan serve
+git clone https://github.com/aipxd/infralink-laravel.git
+cd infralink-laravel
 ```
 
-Aplikasi dapat langsung diakses di browser pada:  
-👉 **`http://127.0.0.1:8000`**
+Tanpa Git: di halaman repository klik **Code → Download ZIP**, ekstrak, lalu buka terminal di dalam folder hasil ekstrak.
 
-### 2. Reset / Migrasi & Seed Ulang (Opsional)
-
-Jika ingin me-reset database kembali ke kondisi awal contoh:
+### Langkah 2. Pasang library PHP
 
 ```bash
-php artisan migrate:fresh --seed
+composer install
 ```
 
----
+Perintah ini membuat folder `vendor/` (tidak ikut di repository, karena memang dibuat ulang di setiap komputer).
 
-## 🗄️ Pilihan Database (SQLite & MySQL)
+### Langkah 3. Siapkan file konfigurasi `.env`
 
-### Default: SQLite (Siap Pakai Tanpa Setup)
-Aplikasi sudah terkonfigurasi dengan SQLite (`database/database.sqlite`). Anda tidak perlu menyalakan service database eksternal apa pun.
+File `.env` **tidak ikut di repository** (berisi pengaturan pribadi). Buat dari contoh yang tersedia:
 
-### Opsi: Menggunakan MySQL (misalnya XAMPP MySQL)
-Jika ingin menggunakan MySQL:
-1. Pastikan service MySQL di XAMPP telah berjalan (Port 3306).
-2. Buat database baru bernama `infralink` di phpMyAdmin atau terminal MySQL:
-   ```sql
-   CREATE DATABASE infralink;
-   ```
-3. Buka file `.env` dan sesuaikan:
+```bash
+# Windows (PowerShell / CMD)
+copy .env.example .env
+
+# macOS / Linux
+cp .env.example .env
+```
+
+### Langkah 4. Buat kunci aplikasi
+
+```bash
+php artisan key:generate
+```
+
+Perintah ini mengisi `APP_KEY` di `.env` secara otomatis. Setiap komputer memiliki kunci sendiri dan **kunci ini tidak boleh dibagikan**.
+
+### Langkah 5. Siapkan database
+
+**Opsi A: SQLite (paling mudah, tanpa instalasi database)**
+
+File database SQLite tidak ikut di repository, jadi buat dulu file kosongnya:
+
+```bash
+# Windows (PowerShell)
+New-Item database/database.sqlite -ItemType File
+
+# macOS / Linux
+touch database/database.sqlite
+```
+
+Pengaturan bawaan `.env.example` sudah memakai `DB_CONNECTION=sqlite`, tidak perlu diubah.
+
+**Opsi B: MySQL (misalnya XAMPP)**
+
+1. Nyalakan **MySQL** di XAMPP Control Panel (port 3306).
+2. Buka http://localhost/phpmyadmin, buat database baru bernama `infralink` (collation `utf8mb4_unicode_ci`).
+3. Ubah bagian database di file `.env`:
    ```env
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
@@ -74,10 +123,83 @@ Jika ingin menggunakan MySQL:
    DB_USERNAME=root
    DB_PASSWORD=
    ```
-4. Jalankan migrasi dan seeder:
-   ```bash
-   php artisan migrate:fresh --seed
-   ```
+   Pastikan tidak ada tanda `#` di depan baris-baris tersebut. Kosongkan `DB_PASSWORD` hanya jika MySQL lokal Anda memang tanpa kata sandi (bawaan XAMPP). Untuk pemakaian lain, gunakan kata sandi yang kuat.
+
+### Langkah 6. Buat tabel dan isi data contoh
+
+```bash
+php artisan migrate --seed
+```
+
+Perintah ini membuat seluruh tabel dan mengisi akun, kategori, fasilitas, serta booking contoh.
+
+### Langkah 7. (Opsional) Hubungkan folder upload
+
+```bash
+php artisan storage:link
+```
+
+### Langkah 8. Jalankan server
+
+```bash
+php artisan serve
+```
+
+Buka di browser: 👉 **http://127.0.0.1:8000**
+
+Untuk menghentikan server, tekan `Ctrl + C` di terminal.
+
+---
+
+## 👥 Akun Demo (dari Seeder)
+
+Setelah `php artisan migrate --seed`, akun berikut tersedia untuk pengujian lokal:
+
+| Peran | Email | Keterangan |
+| --- | --- | --- |
+| **ADMIN** | `admin@infralink.ac.id` | Akses penuh: dashboard, kelola fasilitas, kategori, blokir jadwal, kelola pengguna & peran |
+| **APPROVER** | `approver@infralink.ac.id` | Peninjau peminjaman: antrean pengajuan, setujui/tolak dengan catatan |
+| **PEMOHON** | `mahasiswa@infralink.ac.id` | Pengguna: mengajukan peminjaman, memantau riwayat di "Peminjaman Saya", membatalkan |
+| **PEMOHON 2** | `hima@infralink.ac.id` | Akun ormawa HIMASISFO |
+
+Kata sandi akun demo ditentukan di `database/seeders/DatabaseSeeder.php`. Akun ini **hanya untuk pengembangan/demo lokal**. Jangan gunakan data ini pada server yang dapat diakses publik, atau ganti kata sandinya terlebih dahulu.
+
+---
+
+## 🔄 Reset Data
+
+Untuk mengembalikan database ke kondisi awal contoh:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+> ⚠️ Perintah ini **menghapus seluruh tabel dan datanya**, lalu membuatnya ulang. Jangan jalankan pada database yang berisi data penting.
+
+---
+
+## 🛠️ Pemecahan Masalah
+
+| Masalah | Penyebab & Solusi |
+| --- | --- |
+| `'php' / 'composer' / 'git' is not recognized` | Program belum terpasang atau belum masuk PATH. Pasang lalu **buka ulang terminal**. |
+| `Your PHP version does not satisfy the requirement` | Versi PHP di bawah 8.2. Perbarui PHP. |
+| `The requested PHP extension ext-xxx is missing` | Aktifkan ekstensi tersebut di `php.ini` (hapus tanda `;`), lalu ulangi `composer install`. |
+| `No application encryption key has been specified` | Jalankan `php artisan key:generate`. |
+| `Database file ... does not exist` | Buat file `database/database.sqlite` (Langkah 5 Opsi A). |
+| `Access denied for user` / `Connection refused` / `Unknown database` | Periksa MySQL sudah menyala, nama database sudah dibuat, dan isi `.env` sudah benar. Lalu jalankan `php artisan config:clear`. |
+| Tampilan berantakan / kalender tidak muncul | Periksa koneksi internet (aset dimuat dari CDN). |
+| Perubahan `.env` tidak terbaca | Jalankan `php artisan config:clear`. |
+| Proyek berada di folder OneDrive dan instalasi lambat/gagal | Pindahkan proyek ke folder biasa, misalnya `C:\proyek\infralink-laravel`. |
+
+---
+
+## 🗄️ Pilihan Database (SQLite & MySQL)
+
+- **SQLite (default)**: satu file (`database/database.sqlite`), tanpa server database terpisah. Cocok untuk demo dan pengembangan.
+- **MySQL**: cocok untuk penggunaan nyata. Kode aplikasi tidak perlu diubah, cukup mengganti pengaturan di `.env`.
+
+Catatan: penguncian baris `lockForUpdate()` bekerja penuh di MySQL. Pada SQLite, penguncian dilakukan pada seluruh file database.
 
 ---
 
@@ -104,7 +226,7 @@ Jika ingin menggunakan MySQL:
 ## 🏗️ Struktur Arsitektur
 
 ```
-Infralink PHP/
+infralink-laravel/
 ├── app/
 │   ├── Http/
 │   │   ├── Controllers/
@@ -128,8 +250,7 @@ Infralink PHP/
 │       └── BookingRuleService.php       # Sumber kebenaran validasi bisnis BR-03..BR-09
 ├── database/
 │   ├── migrations/                      # Skema tabel lengkap
-│   ├── seeders/                         # Seeder akun, kategori, fasilitas, & booking
-│   └── database.sqlite
+│   └── seeders/                         # Seeder akun, kategori, fasilitas, & booking
 ├── resources/
 │   └── views/
 │       ├── layouts/app.blade.php        # Layout utama (Tailwind CSS, FullCalendar, Flash alert)
